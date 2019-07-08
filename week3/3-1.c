@@ -76,11 +76,10 @@ int main()
     TIMSK0 |= _BV(OCIE0A);
 
     TCNT1 = 0;
-    TCCR1A = 0;
+    32 TCCR1A = 0;
     TCCR1B = 0;
     OCR1A = 6249;
-
-    char pat[12][8] = {
+    g char pat[12][8] = {
         {1, 2, 4, 8, 16, 32, 64, 128},
         {128, 64, 32, 16, 8, 4, 2, 1}};
 
