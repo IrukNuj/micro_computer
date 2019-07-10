@@ -2,21 +2,18 @@
 #include <avr/wdt.h>
 
 #define CTOP 2000UL
-#define CTOP2 100UL
-unsigned char pno = 0;
-unsigned char qno = 0;
-unsigned char led[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-unsigned char sw;
 
-unsigned char pat[2][8] = {
-	{1, 2, 4, 8, 16, 32, 64, 128}, // /
-	{128, 64, 32, 16, 8, 4, 2, 1}, // ＼
-};
+unsigned char sw; // スイッチ変数
 
-void update_sw()
-{
-	sw = (~PINC >> 4) & 3; //入力ピンを読み取り，スイッチ変数を更新
-}
+unsigned char led[8] = {
+	0x00,
+	0x00,
+	0x00,
+	0x00,
+	0x00,
+	0x00,
+	0x00,
+	0x00};
 
 void update_led()
 {
@@ -31,12 +28,31 @@ void update_led()
 	PORTB = led[scan];
 }
 
-int main()
+void led_coordinate(int x, int y, int z)
 {
-	unsigned long cnt = 0, cnt2 = 0;
-	unsigned char i;
+	static int tmp_y = 0;
+	// unsigned char led[8] = {};
 
-	// int state = 0;
+	if (z == 0)
+	{
+		led[tmp_y] = 0x00;
+		led[y] = 0x01 << x;
+		tmp_y = y;
+	}
+	else
+	{
+		led[y] ^= 0x01 << x;
+	}
+}
+
+void update_sw()
+{
+	sw = (~PINC >> 4) & 3; //入力ピンを読み取り，スイッチ変数を更新
+}
+
+int main() 描写
+{
+	unsigned long cnt = 0;
 
 	DDRB = 0xFF;
 	DDRC = 0x0F;
@@ -45,6 +61,11 @@ int main()
 	PORTB = 0xFF;
 	PORTC = 0x30;
 	PORTD = 0x00;
+
+	int x = 6;
+	int y = 6;
+	int z = 0;
+	int cnt2 = 0;
 
 	for (;;)
 	{
@@ -60,37 +81,29 @@ int main()
 			cnt2++;
 			if (cnt2 > 100)
 			{
+				z = 0;
 				cnt2 = 0;
 				update_sw();
 				switch (sw)
 				{ // スイッチ状態に応じたアクション
 				case 0:
-					for (int i = 0; i < 8; i++)
-					{
-						led[i] = 0;
-					}
+					led = 0x00;
 					break;
 				case 1:
-					for (int i = 0; i < 8; i++)
-					{
-						led[i] = pat[0][i];
-					}
 					break;
 				case 2:
-					for (int i = 0; i < 8; i++)
+					if (y > 0)
 					{
-						led[i] = pat[1][i];
+						y--;
 					}
 					break;
 				case 3:
-					for (int i = 0; i < 8; i++)
-					{
-						led[i] = pat[0][i] + pat[1][i];
-					}
+					z = 1;
 					break;
 				}
+				led_coordinate(x, y, z);
 			}
-			return 0;
 		}
 	}
+	return 0;
 }
